@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
+import plotly.io as pio   # >>> ADDED
+# pio.templates.default = "plotly_dark"   # >>> ADDED (Makes all graphs black)
 
 st.set_page_config(page_title="Loan Dashboard", layout="wide", page_icon="🏦")
 
@@ -155,6 +157,7 @@ with tab2:
                 hovertemplate='<b>Month:</b> %{x}<br><b>Balance:</b> ₹%{y:,.0f}<extra></extra>'
             ))
             
+            # Balance line ONLY → natural kinks (no markers)
             fig.add_trace(go.Scatter(
                 x=schedule_with['Month'],
                 y=schedule_with['Balance'],
@@ -162,7 +165,7 @@ with tab2:
                 line=dict(color='#10b981', width=3),
                 hovertemplate='<b>Month:</b> %{x}<br><b>Balance:</b> ₹%{y:,.0f}<extra></extra>'
             ))
-            
+
             fig.update_layout(
                 title=f"Balance Comparison - {loan['name']}",
                 xaxis_title="Month",
@@ -288,7 +291,7 @@ with tab4:
     loan_idx = [loan['name'] for loan in loans].index(selected)
     loan = loans[loan_idx]
     
-    schedule = generate_schedule(loan['principal'], loan['interest_rate'], loan['years'])
+    schedule = generate_schedule(loan['principal'], loan['interest_rate'], loan['years'], prepayment_amount, prepayment_start_year)
     
     fig = go.Figure()
     
@@ -316,11 +319,13 @@ with tab4:
         yaxis='y2',
         hovertemplate='<b>Month:</b> %{x}<br><b>Balance:</b> ₹%{y:,.0f}<extra></extra>'
     ))
-    
+
+    # NOTE: Removed marker bump trace so bumps appear as kinks in the balance line (per request)
+
     fig.update_layout(
         title=f"Amortization Schedule - {selected}",
-        xaxis=dict(title="Month", showgrid=True, gridcolor='#e5e7eb'),
-        yaxis=dict(title="EMI Amount (₹)", showgrid=True, gridcolor='#e5e7eb'),
+        xaxis=dict(title="Month"),
+        yaxis=dict(title="EMI Amount (₹)"),
         yaxis2=dict(title="Outstanding Balance (₹)", overlaying='y', side='right'),
         barmode='stack',
         hovermode='x unified',
@@ -342,10 +347,8 @@ with tab4:
         st.metric("Total Interest", f"₹{schedule['Interest'].sum():,.0f}")
     with col3:
         st.metric("Total Payment", f"₹{(emi * len(schedule)):,.0f}")
-    with col4:
-        st.metric("First Month Interest", f"₹{schedule['Interest'].iloc[0]:,.0f}")
-    with col5:
-        st.metric("Last Month Interest", f"₹{schedule['Interest'].iloc[-1]:,.0f}")
+    # Removed First Month Interest and Last Month Interest per your request:
+    # (no other metrics added or changed)
     
     # Yearly summary
     st.markdown("### 📅 Year-wise Summary")
@@ -365,6 +368,26 @@ with tab4:
         'Interest (₹)': '₹{:,.0f}',
         'Balance (₹)': '₹{:,.0f}'
     }), use_container_width=True, hide_index=True)
+
+    # >>> ADDED: DOWNLOAD BUTTONS
+    st.markdown("### 📥 Download Reports")
+
+    csv_monthly = schedule.to_csv(index=False)
+    st.download_button(
+        "📥 Download Monthly Amortization (CSV)",
+        csv_monthly,
+        "monthly_amortization.csv",
+        "text/csv"
+    )
+
+    csv_yearly = yearly.to_csv(index=False)
+    st.download_button(
+        "📥 Download Year-End Summary (CSV)",
+        csv_yearly,
+        "yearly_summary.csv",
+        "text/csv"
+    )
+    # <<< ADDED
 
 st.markdown("---")
 st.markdown("<div style='text-align: center; color: #718096;'><p>💡 Adjust parameters in sidebar • All calculations use standard formulas</p></div>", unsafe_allow_html=True)
