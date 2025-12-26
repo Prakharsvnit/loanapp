@@ -20,6 +20,10 @@ st.title("🏦 Loan Comparison Dashboard")
 st.markdown("<p style='color: #666; font-size: 18px;'>Compare Loans with EMI Calculator & Analysis</p>", unsafe_allow_html=True)
 
 # Sidebar
+st.sidebar.metric(
+    label="Current Repo Rate",
+    value="5.25%"
+)
 st.sidebar.header("📋 Loan Details")
 num_loans = st.sidebar.number_input("Number of Loans", min_value=1, max_value=5, value=2)
 
