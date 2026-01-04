@@ -23,7 +23,7 @@ st.markdown("<p style='color: #666; font-size: 18px;'>Compare Loans with EMI Cal
 
 # Sidebar
 st.sidebar.metric(
-    label="Current Repo Rate",
+    label="Current Repo Rate - India",
     value="5.25%"
 )
 st.sidebar.header("📋 Loan Details")
